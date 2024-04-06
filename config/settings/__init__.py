@@ -1,5 +1,4 @@
 from decouple import config
-from .base_settings import *
 
 ENVIRONMENT = config('ENVIRONMENT', None)
 if ENVIRONMENT:
