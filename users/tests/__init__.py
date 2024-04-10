@@ -1,1 +1,3 @@
-from .group_tests import GroupViewSetTest
+from .group_tests import GroupAPITestCaseWithPermission, GroupAPITestCaseWithOutPermission
+from .permission_test import PermissionAPITestCaseWithPermission, PermissionAPITestCaseWithOutPermission
+from .user_test import UserAPITestCaseWithPermission, UserAPITestCaseWithOutPermission

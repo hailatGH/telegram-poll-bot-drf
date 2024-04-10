@@ -1,47 +1,94 @@
-from rest_framework.test import APITestCase
-from rest_framework import status
-from django.urls import reverse
-from users.models import CustomGroup
-from users.models import CustomUser as User
+from django.test import TestCase
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 
-class GroupViewSetTest(APITestCase):
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from users.models import CustomUser
+
+class GroupAPITestCaseWithPermission(TestCase):
     def setUp(self):
-        self.user = User.objects.create(username='test_user', password='password123')
-        self.group_data = {'name': 'Test Group'}
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username='testuser', password='password')
+        content_type = ContentType.objects.get_for_model(Group)
+        permissions = Permission.objects.filter(content_type=content_type)
+        self.user.user_permissions.set(permissions)
+        self.client.force_authenticate(user=self.user)
+
+    def test_group_list(self):
+        Group.objects.create(name='Test Group')
+        response = self.client.get('/api-users/groups/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
 
     def test_create_group(self):
-        self.client.force_authenticate(user=self.user)
-        response = self.client.post(reverse('group-list'), self.group_data, format='json')
+        data = {'name': 'New Group'}
+        response = self.client.post('/api-users/groups/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(CustomGroup.objects.count(), 1)
-        self.assertEqual(CustomGroup.objects.get().name, 'Test Group')
+        self.assertEqual(Group.objects.count(), 1)
+        self.assertEqual(Group.objects.get().name, 'New Group')
 
-    def test_update_group(self):
-        group = CustomGroup.objects.create(name='Old Name')
-        self.client.force_authenticate(user=self.user)
-        updated_data = {'name': 'New Name'}
-        response = self.client.put(reverse('group-detail', args=[group.id]), updated_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(CustomGroup.objects.get().name, 'New Name')
-
-    def test_retrieve_group(self):
-        group = CustomGroup.objects.create(name='Test Group')
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get(reverse('group-detail', args=[group.id]), format='json')
+    def test_group_detail(self):
+        group = Group.objects.create(name='Test Group')
+        response = self.client.get(f'/api-users/groups/{group.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Test Group')
 
-    def test_list_groups(self):
-        CustomGroup.objects.create(name='Group 1')
-        CustomGroup.objects.create(name='Group 2')
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get(reverse('group-list'), format='json')
+    def test_update_group(self):
+        group = Group.objects.create(name='Test Group')
+        data = {'name': 'Updated Group'}
+        response = self.client.put(f'/api-users/groups/{group.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(Group.objects.get().name, 'Updated Group')
 
-    def test_destroy_group(self):
-        group = CustomGroup.objects.create(name='Test Group')
-        self.client.force_authenticate(user=self.user)
-        response = self.client.delete(reverse('group-detail', args=[group.id]), format='json')
+    def test_partial_update_group(self):
+        group = Group.objects.create(name='Test Group')
+        data = {'name': 'Partial Update Group'}
+        response = self.client.patch(f'/api-users/groups/{group.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Group.objects.get().name, 'Partial Update Group')
+
+    def test_delete_group(self):
+        group = Group.objects.create(name='Test Group')
+        response = self.client.delete(f'/api-users/groups/{group.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(CustomGroup.objects.count(), 0)
+        self.assertEqual(Group.objects.count(), 0)
+
+class GroupAPITestCaseWithOutPermission(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)
+
+    def test_group_list(self):
+        Group.objects.create(name='Test Group')
+        response = self.client.get('/api-users/groups/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_group(self):
+        data = {'name': 'New Group'}
+        response = self.client.post('/api-users/groups/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_group_detail(self):
+        group = Group.objects.create(name='Test Group')
+        response = self.client.get(f'/api-users/groups/{group.id}/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_update_group(self):
+        group = Group.objects.create(name='Test Group')
+        data = {'name': 'Updated Group'}
+        response = self.client.put(f'/api-users/groups/{group.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_partial_update_group(self):
+        group = Group.objects.create(name='Test Group')
+        data = {'name': 'Partial Update Group'}
+        response = self.client.patch(f'/api-users/groups/{group.id}/', data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_group(self):
+        group = Group.objects.create(name='Test Group')
+        response = self.client.delete(f'/api-users/groups/{group.id}/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

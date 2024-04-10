@@ -11,7 +11,7 @@ class PermissionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if not request.user.has_perm('users.get_permission'):
+        if not request.user.has_perm('auth.view_permission'):
             return Response({'message': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
         queryset = Permission.objects.all().order_by('id')
         serializer = PermissionSerializer(queryset, many=True)
