@@ -45,6 +45,8 @@ class UserDetailAPIView(APIView):
         user = self.get_object(pk)
         if not request.user.has_perm('users.update_user'):
             return Response({'message': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        user.user_permissions.clear()
+        user.groups.clear()
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()

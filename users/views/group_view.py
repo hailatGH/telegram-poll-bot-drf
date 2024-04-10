@@ -48,6 +48,7 @@ class GroupDetailAPIView(APIView):
         group = self.get_object(pk)
         if not request.user.has_perm('users.update_group'):
             return Response({'message': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+        group.permissions.clear()
         serializer = GroupSerializer(group, data=request.data)
         if serializer.is_valid():
             serializer.save()
