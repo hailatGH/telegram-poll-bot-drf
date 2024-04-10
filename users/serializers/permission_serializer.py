@@ -1,8 +1,8 @@
+from django.contrib.auth.models import Permission
+
 from rest_framework import serializers
 
-from users.models import CustomPermission
-        
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomPermission
+        model = Permission
         fields = "__all__"

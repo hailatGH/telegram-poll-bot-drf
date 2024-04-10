@@ -1,12 +1,12 @@
-from rest_framework import routers
-from django.urls import path, include
-from users.views import UserViewSet, GroupViewSet, PermissionViewSet
-
-router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'users', UserViewSet)
-router.register(r'groups', GroupViewSet)
-router.register(r'permissions', PermissionViewSet)
+from django.urls import path
+from users.views import UserAPIView, UserDetailAPIView, GroupAPIView, GroupDetailAPIView, PermissionAPIView
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('groups/', GroupAPIView.as_view(), name='group-list'),
+    path('groups/<int:pk>/', GroupDetailAPIView.as_view(), name='group-detail'),
+
+    path('permissions/', PermissionAPIView.as_view(), name='permission-list'),
+
+    path('users/', UserAPIView.as_view(), name='user-list'),
+    path('users/<str:pk>/', UserDetailAPIView.as_view(), name='user-detail'),
 ]

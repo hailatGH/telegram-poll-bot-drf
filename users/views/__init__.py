@@ -1,3 +1,3 @@
-from .group_viewset import GroupViewSet
-from .permission_viewset import PermissionViewSet
-from .user_viewset import UserViewSet
+from .group_view import GroupAPIView, GroupDetailAPIView
+from .permission_view import  PermissionAPIView
+from .user_view import UserAPIView, UserDetailAPIView

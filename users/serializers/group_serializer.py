@@ -1,9 +1,9 @@
-from rest_framework import serializers
+from django.contrib.auth.models import Group
 
-from users.models import CustomGroup
+from rest_framework import serializers
         
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomGroup
+        model = Group
         fields = "__all__"
         

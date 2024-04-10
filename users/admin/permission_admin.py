@@ -1,11 +1,10 @@
 from django.contrib import admin
-
-from users.models import CustomPermission
+from django.contrib.auth.models import Permission
 
 class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'content_type', 'codename', 'created_at', 'updated_at')
+    list_display = ('name', 'content_type', 'codename')
     search_fields = ('name', 'codename')
-    list_filter = ('content_type__app_label', 'content_type__model', 'created_at', 'updated_at')
+    list_filter = ('content_type__app_label', 'content_type__model')
 
-admin.site.register(CustomPermission, PermissionAdmin)
+admin.site.register(Permission, PermissionAdmin)
 
